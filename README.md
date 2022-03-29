@@ -10,7 +10,8 @@ I have 4 main algorithms
 These algorithms operate almost identically with the algorithms coded for my other project on Mastermind (also available on my GitHub). 
 
 NOTES:
-This is one of the first project I've coded using Python so there are probably many things that could be done better. 
+This is one of the first project I've coded using Python so there are probably many things that could be done better.
+Coded and ran all this code in Python using Spyder IDE.
 
 
 
