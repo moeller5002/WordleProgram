@@ -69,7 +69,7 @@ def getOutput(posGuesses):
     wordLength = len(posGuesses[0])
     
     while len(given_output) != wordLength:
-        given_output = list(input('Enter the response. $ =Yellow, ! =Grey, Letter =Green: '))
+        given_output = list(input('Enter the response. 1 =Yellow, 0 =Grey, Letter =Green: '))
         
         if len(given_output) != wordLength:
             print('Need output of length ', wordLength)
@@ -219,13 +219,13 @@ def outputGenerator(guessed_word, checked_word):#Takes in two words as strings a
     output = []
     
     for i in range(len(guessed)):
-        output.append('!') #They are grey by default 
+        output.append('0') #They are grey by default 
     
     for i in greenIndex(guessed, checked):
         output[i] = guessed[i]
     
     for i in (yellowIndex3(guessed, checked)):
-        output[i] = '$' 
+        output[i] = '1' 
     
     return output
 
