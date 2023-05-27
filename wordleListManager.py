@@ -67,7 +67,8 @@ def importassignWordLists(word_length, reducedYN):
 
 
 
-#Returns the top numWords&freq of words from wordList based on frequency
+#Returns the top numWords&freq of words from wordList based on frequency. (Which words are most common)
+#A little worried about wordFrew being updated in the future and my word lists not matching up anymore...
 def topXWordInfo(wordList, numWords):
     wordsWFreq = []
     

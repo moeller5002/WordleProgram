@@ -93,19 +93,23 @@ def getHelpYN():
 
 def getAlgorithmCode():
     algorithmCode = None
-    posAlgorithmCodes = [1, 2, 3, 4, 5, 6, 7]
+    posAlgorithmCodes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     
     print('Choose which Algorithm to use! ', '\n')
-    print(' Algorithm 1: Random guess from remaining', '\n',
+    print(
+          ' Algorithm 1: Random guess from remaining', '\n',
           
           'Algorithm 2: MaxParts with posAnswers', '\n',
           'Algorithm 3: MaxParts with posGuesses', '\n',
           
-          'Algorithm 4: average_elim2 with posAnswers' , '\n',
-          'Algorithm 5: average_elim2 with posGuesses' , '\n',
+          'Algorithm 4: average_elim with posAnswers' , '\n',
+          'Algorithm 5: average_elim with posGuesses' , '\n',
          
           'Algorithm 6: MaxEntropy with posAnswers', '\n',
           'Algorithm 7: MaxEntropy with posGuesses', '\n',
+          
+          'Algorithm 8: MiniMax with posAnswers', '\n',
+          'Algorithm 9: MiniMax with posGuesses', '\n'
           )
     
     while algorithmCode not in posAlgorithmCodes:
@@ -115,7 +119,7 @@ def getAlgorithmCode():
             print('')
     return algorithmCode
     
-
+#############################
 
 def suggestedWord(algorithm, num_guesses, posAnswers, posGuesses, reducedYN):
     suggested = ''
@@ -126,6 +130,7 @@ def suggestedWord(algorithm, num_guesses, posAnswers, posGuesses, reducedYN):
         #Random_guess
         suggested = random_guess(posAnswers)
         return suggested
+    
     
     if num_guesses == 0:
         suggested_stats = firstSuggestedWord(wordLength, algorithm, reducedYN) 
@@ -143,13 +148,17 @@ def suggestedWord(algorithm, num_guesses, posAnswers, posGuesses, reducedYN):
         elif algorithm == 3:
             suggested_stats = max_parts(posGuesses, posAnswers, 0) 
         elif algorithm == 4:
-            suggested_stats = average_elim_guess2(posAnswers, posAnswers, 0) 
+            suggested_stats = average_elim(posAnswers, posAnswers, 0) 
         elif algorithm == 5:
-            suggested_stats = average_elim_guess2(posGuesses, posAnswers, 0) 
+            suggested_stats = average_elim(posGuesses, posAnswers, 0) 
         elif algorithm == 6:
             suggested_stats = max_entropy(posAnswers, posAnswers, 0) 
         elif algorithm == 7:
             suggested_stats = max_entropy(posGuesses, posAnswers, 0) 
+        elif algorithm == 8:
+            suggested_stats = MiniMax(posAnswers, posAnswers, 0) 
+        elif algorithm == 9:
+            suggested_stats = MiniMax(posGuesses, posAnswers, 0)    
         else:
             print('---Error: Invalid algorithm code---')
     
@@ -160,80 +169,49 @@ def suggestedWord(algorithm, num_guesses, posAnswers, posGuesses, reducedYN):
     
 
 
-#############################
 
+'''-----------Core grading function----------'''
 
-
-
-'''-----------Core grading functions----------'''
-
-def greenIndex(guessed, checked):#Gives the list of indeces of greens when passed two words in the form of a list
-    greens = []
-    
-    for i in range(len(guessed)):
-        if guessed[i] == checked[i]:
-            greens.append(i)
-    
-    return greens
-       
-
-
-def yellowIndex3(guessed, checked):#Gives the list of indeces of yellows when passed two words in the form of a list
-    yellows = []
-    
-    for i in range(len(guessed)):
-        if guessed[i] != checked[i]:
-            if guessed[i] in checked:
-                    inGuessed = [j for j, x in enumerate(guessed) if x == guessed[i]]
-                    inChecked = [j for j, x in enumerate(checked) if x == guessed[i]]
-                    
-                    nonSharedinGuess = list(set(inGuessed) - set(inChecked))
-                    nonSharedinCheck = list(set(inChecked) - set(inGuessed))
-                    
-                    x = min(len(nonSharedinGuess), len(nonSharedinCheck))
-                    
-                    ###########
-                    #when you subtract the sets to get nonSharedinGuess, it will flip the order so later indeces are first
-                    #need to remedy this by sorting low to high
-                    #change was made after all algorithms & best words run. dont believe it has effect on findings though
-                    nonSharedinGuess.sort()
-                    ###########
-                    
-                    if x != 0:
-                        for i in range(x):
-                            if nonSharedinGuess[i] not in yellows:
-                                yellows.append(nonSharedinGuess[i])
-
-                    
-    return yellows #does not the greys. anything not green or yellow is grey by defult
-
-
-
-def outputGenerator(guessed_word, checked_word):#Takes in two words as strings and gives the output as a list
-    guessed = list(guessed_word)
-    checked = list(checked_word)
-    
-    if len(guessed) != len(checked):
+def outputGenerator2(guessed_word, checked_word):#Takes in two words as strings and gives the output as a list
+    if len(guessed_word) != len(checked_word):
         return ValueError('Error: Words must be same length')
     
-    output = []
     
-    for i in range(len(guessed)):
-        output.append('0') #They are grey by default 
+    'Initialize output as all 0s (greys)'
+    output = ['0'] * len(guessed_word)
     
-    for i in greenIndex(guessed, checked):
-        output[i] = guessed[i]
+    'Puts in the green letters'
+    'This is 5% faster than using list comprehension'
+    for i in range(len(guessed_word)):
+        if guessed_word[i] == checked_word[i]:
+            output[i] = guessed_word[i]
     
-    for i in (yellowIndex3(guessed, checked)):
+    
+    'Determines what indeces in the output should be yellows'
+    'This is 40% faster than old algorithm'
+    yellows = []
+    
+    guessedMod = guessed_word
+    checkedMod = checked_word
+    
+    for i in range(len(checkedMod)):
+        if checked_word[i] == guessedMod[i]:
+            guessedMod = guessedMod[:i] + '*' + guessedMod[i+1:]
+            checkedMod = checkedMod[:i] + '^' + checkedMod[i+1:]
+    
+    for i in range(len(checkedMod)):
+        if (checkedMod[i] in guessedMod):
+                firstIndex = guessedMod.find(checkedMod[i])
+                yellows.append(firstIndex)
+                guessedMod = guessedMod[:firstIndex] + '#' + guessedMod[firstIndex+1:]
+    
+    'Puts in the yellow letters as 1'
+    for i in yellows:
         output[i] = '1' 
+    
     
     return output
 
-
-
-#print("Yellow indexes" , yellowIndex3("certainties", "reorganized"))
-#print(outputGenerator("certainties", "reorganized"))
-#Yellows should be 2,4,5. If you dont sort, it will give 2,4,8
 
 
 
@@ -242,7 +220,7 @@ def filter_posAnswers(guessed_word, output, posAnswers):
     posAnswers_updated = []
     
     for i in posAnswers:
-        if output == outputGenerator(guessed_word, i):
+        if output == outputGenerator2(guessed_word, i):
             posAnswers_updated.append(i)
             
     return posAnswers_updated
@@ -274,7 +252,7 @@ def simulate_game3(answer_word, algorithm, posAnswers, posGuesses, reducedYN):
             break
     
         else:
-            output = outputGenerator(guess_word, answer_word)
+            output = outputGenerator2(guess_word, answer_word)
 
             # remove words that are no longer able
             posAnswers = filter_posAnswers(guess_word, output, posAnswers)
@@ -329,13 +307,14 @@ def testAlgorithm():
 
 '''Guess Suggestion Algorithms'''
 
+'Doesnt get simpler than this...'
 def random_guess(list):
     guess = str(random.choice(list))
     return guess
 
 
 
-#Max parts is essentially max_entropy but we dont care about frequency of each output
+'Max parts is essentially max_entropy but we dont care about frequency of each output'
 def max_parts(posGuesses, posAnswers, printYN):
     maxParts = 0
     bestWord = ''
@@ -347,7 +326,7 @@ def max_parts(posGuesses, posAnswers, printYN):
         locator += 1
         
         for checked_word in posAnswers:
-            output = outputGenerator(guessed_word, checked_word)
+            output = outputGenerator2(guessed_word, checked_word)
             
             if output not in distinctOutputs:
                 distinctOutputs.append(output)
@@ -355,7 +334,7 @@ def max_parts(posGuesses, posAnswers, printYN):
         partitions = len(distinctOutputs)
         
         if printYN == 1:
-            print('Word No. ', locator, ' was ', guessed_word, ' Partitions: ', partitions)
+            print('Word No.', locator, ' was ', guessed_word, ' Partitions: ', partitions)
         
          #Maximum possible partitions is length of posAnswers, test for that first
         if partitions == L and guessed_word in posAnswers:
@@ -376,8 +355,8 @@ def max_parts(posGuesses, posAnswers, printYN):
 
 
 
-#This is mathematically equivalent to old one. Works must faster
-def average_elim_guess2(posGuesses, posAnswers, printYN):
+'This is mathematically equivalent to old one. Works must faster'
+def average_elim(posGuesses, posAnswers, printYN):
     bestElimFactor = 1
     bestWord = ''
     locator = 0
@@ -389,7 +368,7 @@ def average_elim_guess2(posGuesses, posAnswers, printYN):
         locator += 1
         
         for checked_word in posAnswers:
-            output = outputGenerator(guessed_word, checked_word)
+            output = outputGenerator2(guessed_word, checked_word)
             
             if output in distinctOutputs:
                 countOfOutputs[distinctOutputs.index(output)] += 1
@@ -400,7 +379,7 @@ def average_elim_guess2(posGuesses, posAnswers, printYN):
         elimFactor = (sum(i*i for i in countOfOutputs)/(ourSum*ourSum))
         
         if printYN == 1:
-            print('Word No. ', locator, ' was ', guessed_word, ' ElimFactor: ', elimFactor)
+            print('Word No.', locator, ' was ', guessed_word, ' ElimFactor: ', elimFactor)
     
       
         if elimFactor == 1/L and guessed_word in posAnswers:
@@ -419,7 +398,7 @@ def average_elim_guess2(posGuesses, posAnswers, printYN):
 
 
 
-
+'Another algorithm'
 def max_entropy(posGuesses, posAnswers, printYN):
     maxExpEntropy = 0
     bestWord = ''
@@ -432,7 +411,7 @@ def max_entropy(posGuesses, posAnswers, printYN):
         locator += 1
         
         for checked_word in posAnswers:
-            output = outputGenerator(guessed_word, checked_word)
+            output = outputGenerator2(guessed_word, checked_word)
             
             if output in distinctOutputs:
                 countOfOutputs[distinctOutputs.index(output)] += 1
@@ -446,7 +425,7 @@ def max_entropy(posGuesses, posAnswers, printYN):
             totalEntropy += entropy
         
         if printYN == 1:
-            print('Word No. ', locator, ' was ', guessed_word, ' Entropy: ', totalEntropy)
+            print('Word No.', locator, ' was ', guessed_word, ' Entropy: ', totalEntropy)
         
         
         if totalEntropy == math.log(L, 2) and guessed_word in posAnswers:
@@ -465,19 +444,11 @@ def max_entropy(posGuesses, posAnswers, printYN):
 
 
 
-
-##All the real algorithms rely on the same data, can combine all 3 so only have to do comparisons once
-##Use this for autobestFirstGuess() in mastermindTesting. Greatly reduces computation time
-def comboAlgorithm(posGuesses, posAnswers, printYN):
-    maxParts = 0
-    bestWordParts = ''
-    
-    bestElimFactor = 1
-    bestWordElim = ''
-    
-    maxExpEntropy = 0
-    bestWordEnt = ''
-    
+'Try to minimize the maximum possible words remaining after this guess'
+def MiniMax(posGuesses, posAnswers, printYN):
+    minimizeMe = 1000000000000
+    bestCountOfOutputs = [0, 1000000000000]
+    bestWord = ''
     locator = 0
     L = len(posAnswers)
     
@@ -485,9 +456,95 @@ def comboAlgorithm(posGuesses, posAnswers, printYN):
         distinctOutputs = []
         countOfOutputs = []
         locator += 1
+        aborted = 0
         
         for checked_word in posAnswers:
-            output = outputGenerator(guessed_word, checked_word)
+            output = outputGenerator2(guessed_word, checked_word)
+            
+            if output in distinctOutputs:
+                countOfOutputs[distinctOutputs.index(output)] += 1
+            else: distinctOutputs.append(output), countOfOutputs.append(1)
+            
+            'If our value goes over the current best, give up and go onto next guess word. We are trying to minimize here!'
+            'Cuts the time to compute in half!!'
+            if max(countOfOutputs) > minimizeMe:
+                aborted = 1
+                break
+        
+        
+        ###MiniMax
+        maxNumberOfRemainingCodes = max(countOfOutputs)
+        bestCountOfOutputsSorted = sorted(bestCountOfOutputs)
+        countOfOutputsSorted = sorted(countOfOutputs)
+          
+        if printYN == 1:
+            if aborted == 1:
+                print('Word No.', locator, ' was ', guessed_word, ' maxNumberOfRemainingCodes:   >', minimizeMe) 
+            else: 
+                print('Word No.', locator, ' was ', guessed_word, ' maxNumberOfRemainingCodes: ', maxNumberOfRemainingCodes)
+        
+        
+        if maxNumberOfRemainingCodes == 1 and (guessed_word in posAnswers):
+            'Found the best possible. Return it now'
+            return guessed_word, maxNumberOfRemainingCodes        
+        elif (countOfOutputsSorted == bestCountOfOutputsSorted) and (bestWord not in posAnswers) and (guessed_word in posAnswers):
+            'If its a dead even tie, see if one word is a possible answer but the another isnt'
+            minimizeMe = maxNumberOfRemainingCodes
+            bestCountOfOutputs = countOfOutputs
+            bestWord = guessed_word
+        else:
+            maxDepthCompare = min(len(bestCountOfOutputs), len(countOfOutputs))
+            for i in range(1, maxDepthCompare):
+                'sorted(countOfOutputs)[-i] gives iTh largest value in a list'
+                if countOfOutputsSorted[-i] < bestCountOfOutputsSorted[-i]:
+                    'print("Old best: ", sorted(bestCountOfOutputs), "  New best: ", sorted(countOfOutputs))'
+                    minimizeMe = maxNumberOfRemainingCodes
+                    bestCountOfOutputs = countOfOutputs
+                    bestWord = guessed_word
+                    break
+                elif  countOfOutputsSorted[-i] > bestCountOfOutputsSorted[-i]:
+                    break
+            ###
+      
+    return bestWord, minimizeMe
+
+
+
+
+
+
+
+
+'Other functions'
+
+'MaxParts, average_elim, Max_Entropy all rely on the same data, can combine all 3 so only have to do comparisons once'
+'Use this for autobestFirstGuess() in mastermindTesting. Greatly reduces computation time'
+def comboAlgorithm(posGuesses, posAnswers, printYN):
+    maxParts = 0 #Initalize to 0
+    bestWordParts = ''
+    
+    bestElimFactor = 1 #Initialize to 1
+    bestWordElim = ''
+    
+    maxExpEntropy = 0 #Initalize to 0
+    bestWordEnt = ''
+    
+    minimizeMe = 1000000000000
+    bestCountOfOutputs = [0, 1000000000000]
+    bestWordMiniMax = ''
+    
+    
+    
+    locator = 0
+    L = len(posAnswers)
+
+    for guessed_word in posGuesses:
+        distinctOutputs = []
+        countOfOutputs = []
+        locator += 1
+        
+        for checked_word in posAnswers:
+            output = outputGenerator2(guessed_word, checked_word)
             
             if output in distinctOutputs:
                 countOfOutputs[distinctOutputs.index(output)] += 1
@@ -496,22 +553,20 @@ def comboAlgorithm(posGuesses, posAnswers, printYN):
         ourSum = sum(countOfOutputs) #this is also just the length of posAnswers
         
         ###PARTS
-        
         partitions = len(distinctOutputs)
-        
+
         if partitions > maxParts:
             maxParts = partitions
             bestWordParts = guessed_word
         if (partitions == maxParts) and (bestWordParts not in posAnswers) and (guessed_word in posAnswers):
             maxParts = partitions
             bestWordParts = guessed_word
-        
-        
         ###
+        
         
         ###ELIM
         elimFactor = (sum(i*i for i in countOfOutputs)/(ourSum*ourSum))
-        
+
         if elimFactor < bestElimFactor:
             bestElimFactor = elimFactor
             bestWordElim = guessed_word
@@ -526,7 +581,7 @@ def comboAlgorithm(posGuesses, posAnswers, printYN):
         for i in countOfOutputs:
             entropy = (i/ourSum)*math.log((ourSum/i), 2)
             totalEntropy += entropy
-            
+
         if totalEntropy > maxExpEntropy:
             maxExpEntropy = totalEntropy
             bestWordEnt = guessed_word
@@ -534,21 +589,49 @@ def comboAlgorithm(posGuesses, posAnswers, printYN):
             maxExpEntropy = totalEntropy
             bestWordEnt = guessed_word 
         ###
-            
+        
+        
+        ###MiniMax
+        maxNumberOfRemainingCodes = max(countOfOutputs)
+        bestCountOfOutputsSorted = sorted(bestCountOfOutputs)
+        countOfOutputsSorted = sorted(countOfOutputs)
+        
+  
+        if (countOfOutputsSorted == bestCountOfOutputsSorted) and (bestWordMiniMax not in posAnswers) and (guessed_word in posAnswers):
+            minimizeMe = maxNumberOfRemainingCodes
+            bestCountOfOutputs = countOfOutputs
+            bestWordMiniMax = guessed_word
+        else:
+            'If the worst case scenarios are equal, look at the 2nd worse scenarios, 3rd case...'
+            maxDepthCompare = min(len(bestCountOfOutputs), len(countOfOutputs))
+            for i in range(1, maxDepthCompare):
+                'sorted(countOfOutputs)[-i] is iTh largest value in a list'
+                if countOfOutputsSorted[-i] < bestCountOfOutputsSorted[-i]:
+                    'print("Old best: ", sorted(bestCountOfOutputs), "  New best: ", sorted(countOfOutputs))'
+                    minimizeMe = maxNumberOfRemainingCodes
+                    bestCountOfOutputs = countOfOutputs
+                    bestWordMiniMax = guessed_word
+                    break
+                elif  countOfOutputsSorted[-i] > bestCountOfOutputsSorted[-i]:
+                    break
+            ###
+        
+        
+        
         if printYN == 1:
             print('Code No. ', locator, ' was ', guessed_word, ' Partitions: ', partitions, 
-                  ' ElimFactor: ', elimFactor,' Entropy: ', totalEntropy)
+                  ' ElimFactor: ', elimFactor,' Entropy: ', totalEntropy, ' MiniMax maxNumberOfRemainingCodes: ', maxNumberOfRemainingCodes)
+    
     
     ##Results for each algorithm either reduced or not reduced list. posAnswers or posGuesses, depends on what you feed in
-    wholeCell = [[bestWordParts, maxParts], [bestWordElim, bestElimFactor], [bestWordEnt, maxExpEntropy]]
+    wholeCell = [[bestWordParts, maxParts], [bestWordElim, bestElimFactor], [bestWordEnt, maxExpEntropy], [bestWordMiniMax, minimizeMe]]
     
     return wholeCell
 
 
 
 
-
-#Gives the quality of a guess by giving Entropy, Partitions, ElimFactor, extra stuff
+'Gives the quality of a guess by giving Entropy, Partitions, ElimFactor, MiniMax, extra stuff'
 def giveGuessDist():
     
     wordLength, reducedYN = getGameWordLength()
@@ -563,7 +646,7 @@ def giveGuessDist():
     countOfOutputs = []
     
     for checked_word in posAnswers:
-        output = outputGenerator(guessed_word, checked_word)
+        output = outputGenerator2(guessed_word, checked_word)
         
         if output in distinctOutputs:
             countOfOutputs[distinctOutputs.index(output)] += 1
@@ -590,4 +673,7 @@ def giveGuessDist():
     elimFactor = (sum(i*i for i in countOfOutputs)/(ourSum*ourSum))
     print('Elim Factor is ', elimFactor)
     
+    print('MaxNumberOfRemainingCodes is ', max(countOfOutputs))
+    
     return
+
