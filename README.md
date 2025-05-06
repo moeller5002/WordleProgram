@@ -6,6 +6,7 @@ I have 4 main algorithms
 2. MaxParts
 3. AverageElim
 4. MaxEntropy
+5. MiniMax
 
 These algorithms operate almost identically with the algorithms coded for my other project on Mastermind (also available on my GitHub). 
 
