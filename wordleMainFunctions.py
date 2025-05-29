@@ -171,8 +171,8 @@ def suggestedWord(algorithm, num_guesses, posAnswers, posGuesses, reducedYN):
 
 
 '''-----------Core grading function----------'''
-
-def outputGenerator2(guessed_word, checked_word):#Takes in two words as strings and gives the output as a list
+'''Returns a properly filtered list of possible answer words: ChatGPT failed to make faster'''
+def outputGenerator2(guessed_word, checked_word):
     if len(guessed_word) != len(checked_word):
         return ValueError('Error: Words must be same length')
     
@@ -215,7 +215,7 @@ def outputGenerator2(guessed_word, checked_word):#Takes in two words as strings 
 
 
 
-'''Returns a properly filtered list of possible answer words'''
+'''Returns a properly filtered list of possible answer words: ChatGPT failed to make faster'''
 def filter_posAnswers(guessed_word, output, posAnswers):
     posAnswers_updated = []
     
@@ -300,6 +300,34 @@ def testAlgorithm():
     
     
     print('\n', numpy.histogram(guess_data, range(20)))
+    
+    return
+
+
+def testAlgorithm_OneWord():
+    #Gets the number of letters we play with and imports corresponding answer
+    wordLength, reducedYN = getGameWordLength()
+    wordLists = importassignWordLists(wordLength, reducedYN)
+    posAnswers = wordLists[0]
+    posGuesses = wordLists[1]
+    
+    answer_word = ''
+    while (len(answer_word) != wordLength):
+        answer_word = input('What is the answer for the game you want to simulate?: ').lower()
+          
+        if len(answer_word) != wordLength:
+            print('That is not ', wordLength, ' letters!')
+        if len(answer_word) == wordLength and (answer_word not in posAnswers):
+            posAnswers.append(answer_word)
+            
+            if (answer_word not in posGuesses):
+                posGuesses.append(answer_word)
+            
+            print('That is not in the original answer list, added anyway...')
+	
+    algorithmCode = getAlgorithmCode()
+    
+    num_guess = simulate_game3(answer_word, algorithmCode, posAnswers, posGuesses, reducedYN)
     
     return
 
@@ -676,4 +704,5 @@ def giveGuessDist():
     print('MaxNumberOfRemainingCodes is ', max(countOfOutputs))
     
     return
+
 

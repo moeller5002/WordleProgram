@@ -25,11 +25,9 @@ from wordfreq import *
 
 
 
-
-
 def runProcedure():
     choice = []
-    validChoice = [1,2,3,4,5,0]
+    validChoice = [1,2,3,4,5,6,0]
     
     while choice != 0:
         
@@ -38,7 +36,8 @@ def runProcedure():
           '2: Solve a game of Wordle (Cheat)','\n',
           '3: Test an algorithm','\n',
           '4: Test an algorithm against random strings', '\n',
-          '5: Check quality of first guess', '\n',
+          '5: Test an algorithm against a specific word', '\n',
+          '6: Check quality of first guess', '\n',
           '0: Exit to console')
         
         while (choice not in validChoice):
@@ -57,6 +56,8 @@ def runProcedure():
         elif choice == 4:
             testAlgorithmRandomStr()
         elif choice == 5:
+            testAlgorithm_OneWord()
+        elif choice == 6:
             giveGuessDist()
         elif choice == 0:
             return
